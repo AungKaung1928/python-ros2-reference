@@ -2,7 +2,7 @@
 
 Quick reference guide for Python syntax and ROS2 examples on Ubuntu 22.04 with ROS2 Humble.
 
-## 📚 Contents
+##  Contents
 
 ### Basics
 - [01 - Hello World](./01_helloworld) - Basic output and program structure
@@ -29,13 +29,13 @@ Quick reference guide for Python syntax and ROS2 examples on Ubuntu 22.04 with R
 - [18 - Decorators](./18_decorators) - Function wrappers and metaprogramming
 - [19 - Generators](./19_generators) - yield and memory-efficient iteration
 
-## 🎯 Purpose
+##  Purpose
 
 Each file contains:
 1. **General Python Example** - Pure Python syntax reference
 2. **ROS2 Example** - Practical robotics application
 
-## 🚀 Quick Start
+##  Quick Start
 ```bash
 # Run general Python example
 python3 01_helloworld.py
@@ -45,14 +45,14 @@ source /opt/ros/humble/setup.bash
 python3 ros2_example.py
 ```
 
-## 📝 Notes
+##  Notes
 
 - All examples use **Python 3.10+**
 - ROS2 examples are for **Humble** distribution
 - Focus on production-grade patterns
 - Lambda functions and classes are **essential** for ROS2 Python
 
-## 🎓 Learning Path
+##  Learning Path
 
 **Beginners**: 01 → 07  
 **Intermediate**: 08 → 12  
