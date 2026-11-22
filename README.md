@@ -64,3 +64,7 @@ python3 ros2_example.py
 **Beginners**: 01 → 07  
 **Intermediate**: 08 → 12  
 **Advanced/ROS2 Ready**: 13 → 19
+
+## License
+
+MIT, see LICENSE.
