@@ -4,8 +4,8 @@ Quick reference guide for Python syntax and ROS2 examples on Ubuntu 22.04 with R
 ## Getting Started
 ```bash
 # Clone this repository
-git clone https://github.com/YOUR_USERNAME/python-ros2-fundamentals.git
-cd python-ros2-fundamentals
+git clone https://github.com/AungKaung1928/python-ros2-reference.git
+cd python-ros2-reference
 
 # Run any example
 cd 01_helloworld
