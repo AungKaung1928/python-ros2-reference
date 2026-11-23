@@ -1,0 +1,22 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lessons:
+    # Same target as the README: ROS 2 Humble on Ubuntu 22.04.
+    runs-on: ubuntu-latest
+    container: ros:humble
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: pytest
+        run: |
+          apt-get update && apt-get install -y --no-install-recommends python3-pytest
+          source /opt/ros/humble/setup.bash
+          python3 -m pytest -q tests
