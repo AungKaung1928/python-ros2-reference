@@ -93,3 +93,16 @@ def test_scan_callback_runs_on_both_layouts(ros, path, cls_name, angle_min, tmp_
         node.scan_callback(scan(angle_min))
     finally:
         node.destroy_node()
+
+
+@pytest.mark.parametrize("angle_min", [0.0, -math.pi], ids=["0..2pi", "-pi..pi"])
+@pytest.mark.parametrize("obstacle_deg,sector", [(0, "front"), (90, "left"), (270, "right")])
+def test_sets_lesson_names_the_right_sector(ros, angle_min, obstacle_deg, sector):
+    msg = scan(angle_min)
+    msg.ranges = [0.3 if d == obstacle_deg else 5.0 for d in msg.ranges]
+    node = load(ROOT / "11_sets" / "sets.py").ObstacleTrackerNode()
+    try:
+        node.scan_callback(msg)
+        assert node.previous_obstacles_ == {sector}
+    finally:
+        node.destroy_node()
