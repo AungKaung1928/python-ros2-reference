@@ -43,11 +43,21 @@ def general_example():
         print("Cleanup operations")
 
 # ===== ROS2 EXAMPLE =====
+import math
+
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
+
+
+def ray_index(msg, angle):
+    """Index of the ray nearest `angle` (rad; 0 = straight ahead, +pi/2 = left, REP 103).
+    Uses angle_min/angle_increment, so it works whether the lidar scans 0..2*pi
+    (TurtleBot3 LDS-01) or -pi..pi; fixed fractions like len(ranges) // 4 do not."""
+    return round((angle - msg.angle_min) / msg.angle_increment) % len(msg.ranges)
+
 
 class SafeNavigationNode(Node):
     def __init__(self):
@@ -72,7 +82,7 @@ class SafeNavigationNode(Node):
                 raise ValueError("Empty scan data received")
             
             # Get front distance with bounds checking
-            front_idx = len(msg.ranges) // 2
+            front_idx = ray_index(msg, 0.0)
             if front_idx >= len(msg.ranges):
                 raise IndexError("Invalid front index")
             

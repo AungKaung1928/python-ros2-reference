@@ -37,10 +37,20 @@ def general_example():
     print(f"Max: {max(values)}, Min: {min(values)}")
 
 # ===== ROS2 EXAMPLE =====
+import math
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
+
+
+def ray_index(msg, angle):
+    """Index of the ray nearest `angle` (rad; 0 = straight ahead, +pi/2 = left, REP 103).
+    Uses angle_min/angle_increment, so it works whether the lidar scans 0..2*pi
+    (TurtleBot3 LDS-01) or -pi..pi; fixed fractions like len(ranges) // 4 do not."""
+    return round((angle - msg.angle_min) / msg.angle_increment) % len(msg.ranges)
+
 
 class ScanProcessorNode(Node):
     def __init__(self):
@@ -64,7 +74,7 @@ class ScanProcessorNode(Node):
         valid_ranges = [r for r in ranges if 0.1 < r < 10.0]
         
         # Get front distance
-        front_idx = len(ranges) // 2
+        front_idx = ray_index(msg, 0.0)
         front = ranges[front_idx]
         
         # Store in history
@@ -78,7 +88,8 @@ class ScanProcessorNode(Node):
             self.get_logger().info(f'Avg distance: {avg_distance:.2f}m')
         
         # Find minimum distance in front sector
-        front_sector = ranges[front_idx-10:front_idx+10]
+        # 20 rays around the front; % wraps past the end of the list (front can be index 0)
+        front_sector = [ranges[(front_idx + k) % len(ranges)] for k in range(-10, 10)]
         min_dist = min(front_sector)
         
         # Decision based on list data

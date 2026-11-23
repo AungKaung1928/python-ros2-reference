@@ -41,10 +41,20 @@ def general_example():
     print(f"Perimeter: {rect.perimeter()}")
 
 # ===== ROS2 EXAMPLE =====
+import math
+
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
+
+
+def ray_index(msg, angle):
+    """Index of the ray nearest `angle` (rad; 0 = straight ahead, +pi/2 = left, REP 103).
+    Uses angle_min/angle_increment, so it works whether the lidar scans 0..2*pi
+    (TurtleBot3 LDS-01) or -pi..pi; fixed fractions like len(ranges) // 4 do not."""
+    return round((angle - msg.angle_min) / msg.angle_increment) % len(msg.ranges)
+
 
 class RobotController:
     """Class to manage robot movement logic"""
@@ -81,12 +91,11 @@ class SensorProcessor:
         """Filter valid ranges"""
         return [r for r in ranges if self.min_range < r < self.max_range]
     
-    def get_front_distance(self, ranges):
+    def get_front_distance(self, msg):
         """Get distance in front"""
-        if len(ranges) == 0:
+        if len(msg.ranges) == 0:
             return float('inf')
-        front_idx = len(ranges) // 2
-        return ranges[front_idx]
+        return msg.ranges[ray_index(msg, 0.0)]
     
     def update_history(self, distance):
         """Store distance in history"""
@@ -117,7 +126,7 @@ class NavigationNode(Node):
     def scan_callback(self, msg):
         # Use sensor processor class
         valid_ranges = self.sensor_.filter_scan(list(msg.ranges))
-        front_dist = self.sensor_.get_front_distance(list(msg.ranges))
+        front_dist = self.sensor_.get_front_distance(msg)
         
         # Update history
         self.sensor_.update_history(front_dist)
