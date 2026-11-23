@@ -34,6 +34,8 @@ def general_example():
     print(f"Unique fruits: {unique_fruits}")
 
 # ===== ROS2 EXAMPLE =====
+import math
+
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -66,11 +68,18 @@ class ObstacleTrackerNode(Node):
         # Detect obstacles in different sectors
         current_obstacles = set()
         
+        # Sector = angle range in degrees (0 = ahead, +90 = left), not an index
+        # range: index 0 is straight ahead on some lidars and behind on others.
+        def in_sector(i, lo, hi):
+            a = math.degrees(msg.angle_min + i * msg.angle_increment)
+            a = (a + 180.0) % 360.0 - 180.0  # wrap to -180..180
+            return lo <= a <= hi
+        
         ranges = msg.ranges
         sectors = {
-            "front": ranges[len(ranges)//2 - 10:len(ranges)//2 + 10],
-            "left": ranges[0:len(ranges)//4],
-            "right": ranges[3*len(ranges)//4:],
+            "front": [r for i, r in enumerate(ranges) if in_sector(i, -10, 10)],
+            "left": [r for i, r in enumerate(ranges) if in_sector(i, 45, 135)],
+            "right": [r for i, r in enumerate(ranges) if in_sector(i, -135, -45)],
         }
         
         # Add obstacles to set

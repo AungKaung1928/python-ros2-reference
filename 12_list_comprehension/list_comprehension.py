@@ -35,6 +35,8 @@ def general_example():
     print(f"Uppercase: {upper_words}")
 
 # ===== ROS2 EXAMPLE =====
+import math
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
@@ -59,15 +61,16 @@ class ScanFilterNode(Node):
         # Filter valid ranges using list comprehension
         valid_ranges = [r for r in ranges if 0.1 < r < 10.0]
         
-        # Filter ranges in front sector (indices 160-200 out of 360)
-        front_ranges = [ranges[i] for i in range(160, 200) if i < len(ranges)]
-        
-        # Convert ranges to points (polar to cartesian)
+        # Angle of every ray (rad, 0 = straight ahead)
         angles = [msg.angle_min + i * msg.angle_increment 
                   for i in range(len(ranges))]
         
+        # Front sector: rays within 20 deg of straight ahead. atan2(sin, cos) wraps
+        # the angle to -pi..pi, so this works for 0..2pi and -pi..pi scans alike.
+        front_ranges = [r for r, a in zip(ranges, angles)
+                        if abs(math.atan2(math.sin(a), math.cos(a))) < math.radians(20)]
+        
         # Create obstacle points (distances < 1.0m)
-        import math
         obstacle_points = [
             (ranges[i] * math.cos(angles[i]), ranges[i] * math.sin(angles[i]))
             for i in range(len(ranges))
