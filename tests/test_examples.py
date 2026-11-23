@@ -62,3 +62,34 @@ def test_old_fraction_indexing_was_wrong():
     assert msg.ranges[n // 2] == 180.0
     msg = scan(-math.pi)
     assert msg.ranges[n // 4] == 270.0  # labelled 'left', is right
+
+
+def scan_nodes():
+    """(lesson, Node subclass) for every node class that defines scan_callback."""
+    import inspect
+    from rclpy.node import Node
+    out = []
+    for path in LESSONS:
+        for name, cls in inspect.getmembers(load(path), inspect.isclass):
+            if issubclass(cls, Node) and cls is not Node and "scan_callback" in vars(cls):
+                out.append(pytest.param(path, name, id=f"{path.parent.name}.{name}"))
+    return out
+
+
+@pytest.fixture(scope="module")
+def ros():
+    import rclpy
+    rclpy.init()
+    yield
+    rclpy.shutdown()
+
+
+@pytest.mark.parametrize("path,cls_name", scan_nodes())
+@pytest.mark.parametrize("angle_min", [0.0, -math.pi], ids=["0..2pi", "-pi..pi"])
+def test_scan_callback_runs_on_both_layouts(ros, path, cls_name, angle_min, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)  # 16_file_handling logs to a file
+    node = getattr(load(path), cls_name)()
+    try:
+        node.scan_callback(scan(angle_min))
+    finally:
+        node.destroy_node()
