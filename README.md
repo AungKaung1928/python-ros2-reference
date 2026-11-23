@@ -1,16 +1,18 @@
 # Python Fundamentals for ROS2 Robotics
 Quick reference guide for Python syntax and ROS2 examples on Ubuntu 22.04 with ROS2 Humble.
 
-## Getting Started
+## Run a lesson
+Every file imports `rclpy`, so source ROS 2 Humble first.
 ```bash
-# Clone this repository
 git clone https://github.com/AungKaung1928/python-ros2-reference.git
 cd python-ros2-reference
+source /opt/ros/humble/setup.bash
 
-# Run any example
-cd 01_helloworld
-python3 01_helloworld.py
+cd 07_functions
+python3 -c "import functions; functions.general_example()"   # plain-Python part, prints to the terminal
+python3 functions.py   # ROS 2 part: starts the node; it waits for /scan (e.g. TurtleBot3 in Gazebo)
 ```
+Lessons 03, 04, 05, 06 and 15 ask for keyboard input in the plain-Python part.
 
 ##  Contents
 
@@ -44,21 +46,13 @@ Each file contains:
 1. **General Python Example** - Pure Python syntax reference
 2. **ROS2 Example** - Practical robotics application
 
-##  Quick Start
-```bash
-# Run general Python example
-python3 01_helloworld.py
-
-# Run ROS2 example
-source /opt/ros/humble/setup.bash
-python3 ros2_example.py
-```
-
 ##  Notes
-- All examples use **Python 3.10+**
-- ROS2 examples are for **Humble** distribution
-- Focus on production-grade patterns
-- Lambda functions and classes are **essential** for ROS2 Python
+- Python 3.10+, ROS 2 Humble.
+- Lidar examples pick front/left/right with `ray_index(msg, angle)` (0 = ahead, +pi/2 = left), so they work on a 0..2pi scan (TurtleBot3) and a -pi..pi scan.
+- Lambda functions and classes are **essential** for ROS2 Python.
+
+## Tests
+`python3 -m pytest -q tests` (ROS 2 sourced) runs every lesson's plain-Python part and checks `ray_index` on both scan layouts. CI runs the same in a `ros:humble` container.
 
 ##  Learning Path
 **Beginners**: 01 → 07  
