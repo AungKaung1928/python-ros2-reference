@@ -40,11 +40,21 @@ def general_example():
     print(f"Sum using reduce: {sum_all}")
 
 # ===== ROS2 EXAMPLE =====
+import math
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Int32, Float64
+
+
+def ray_index(msg, angle):
+    """Index of the ray nearest `angle` (rad; 0 = straight ahead, +pi/2 = left, REP 103).
+    Uses angle_min/angle_increment, so it works whether the lidar scans 0..2*pi
+    (TurtleBot3 LDS-01) or -pi..pi; fixed fractions like len(ranges) // 4 do not."""
+    return round((angle - msg.angle_min) / msg.angle_increment) % len(msg.ranges)
+
 
 class LambdaRobotNode(Node):
     def __init__(self):
@@ -94,9 +104,9 @@ class LambdaRobotNode(Node):
         safe_ranges = list(map(lambda r: r - 0.1, valid_ranges))
         
         # Get sector distances
-        front_idx = len(ranges) // 2
-        left_idx = len(ranges) // 4
-        right_idx = 3 * len(ranges) // 4
+        front_idx = ray_index(msg, 0.0)
+        left_idx = ray_index(msg, math.pi / 2)
+        right_idx = ray_index(msg, -math.pi / 2)
         
         front = ranges[front_idx]
         left = ranges[left_idx]

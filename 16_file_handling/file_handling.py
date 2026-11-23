@@ -50,6 +50,8 @@ def general_example():
         print(f"Loaded numbers: {loaded_numbers}")
 
 # ===== ROS2 EXAMPLE =====
+import math
+
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
@@ -58,6 +60,14 @@ from nav_msgs.msg import Odometry
 import json
 import csv
 from datetime import datetime
+
+
+def ray_index(msg, angle):
+    """Index of the ray nearest `angle` (rad; 0 = straight ahead, +pi/2 = left, REP 103).
+    Uses angle_min/angle_increment, so it works whether the lidar scans 0..2*pi
+    (TurtleBot3 LDS-01) or -pi..pi; fixed fractions like len(ranges) // 4 do not."""
+    return round((angle - msg.angle_min) / msg.angle_increment) % len(msg.ranges)
+
 
 class DataLoggerNode(Node):
     def __init__(self):
@@ -152,9 +162,9 @@ class DataLoggerNode(Node):
                 return
             
             # Extract distances
-            front = ranges[len(ranges) // 2]
-            left = ranges[len(ranges) // 4]
-            right = ranges[3 * len(ranges) // 4]
+            front = ranges[ray_index(msg, 0.0)]
+            left = ranges[ray_index(msg, math.pi / 2)]
+            right = ranges[ray_index(msg, -math.pi / 2)]
             
             # Save to CSV
             self.save_sensor_data(front, left, right)

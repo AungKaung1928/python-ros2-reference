@@ -24,10 +24,20 @@ def general_example():
         print(f"{num} is odd")
 
 # ===== ROS2 EXAMPLE =====
+import math
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
+
+
+def ray_index(msg, angle):
+    """Index of the ray nearest `angle` (rad; 0 = straight ahead, +pi/2 = left, REP 103).
+    Uses angle_min/angle_increment, so it works whether the lidar scans 0..2*pi
+    (TurtleBot3 LDS-01) or -pi..pi; fixed fractions like len(ranges) // 4 do not."""
+    return round((angle - msg.angle_min) / msg.angle_increment) % len(msg.ranges)
+
 
 class ObstacleDetectorNode(Node):
     def __init__(self):
@@ -42,9 +52,9 @@ class ObstacleDetectorNode(Node):
     def scan_callback(self, msg):
         # Get distances in different directions
         ranges = msg.ranges
-        front = ranges[len(ranges) // 2]
-        left = ranges[len(ranges) // 4]
-        right = ranges[3 * len(ranges) // 4]
+        front = ranges[ray_index(msg, 0.0)]
+        left = ranges[ray_index(msg, math.pi / 2)]
+        right = ranges[ray_index(msg, -math.pi / 2)]
         
         cmd = Twist()
         
